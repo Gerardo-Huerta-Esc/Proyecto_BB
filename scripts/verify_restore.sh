@@ -1,12 +1,13 @@
 #!/bin/bash
 set -euo pipefail
 
-CONTAINER="${POSTGRES_CONTAINER_NAME:-payments-postgres}"
 DB="${POSTGRES_DB:-payments}"
 USER="${POSTGRES_USER:-admin}"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+COMPOSE_FILE="${ROOT_DIR}/compose/docker-compose.yml"
 
 echo "[VERIFY] $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-docker exec "${CONTAINER}" psql -U "${USER}" -d "${DB}" -v ON_ERROR_STOP=1 -c "SELECT count(*) AS account_count FROM account;"
-docker exec "${CONTAINER}" psql -U "${USER}" -d "${DB}" -v ON_ERROR_STOP=1 -c "SELECT count(*) AS merchant_count FROM merchant;"
-docker exec "${CONTAINER}" psql -U "${USER}" -d "${DB}" -v ON_ERROR_STOP=1 -c "SELECT count(*) AS terminal_count FROM terminal;"
-docker exec "${CONTAINER}" psql -U "${USER}" -d "${DB}" -v ON_ERROR_STOP=1 -c "SELECT count(*) AS txn_count FROM txn;"
+docker compose -f "${COMPOSE_FILE}" exec -T postgres psql -U "${USER}" -d "${DB}" -v ON_ERROR_STOP=1 -c "SELECT count(*) AS account_count FROM account;"
+docker compose -f "${COMPOSE_FILE}" exec -T postgres psql -U "${USER}" -d "${DB}" -v ON_ERROR_STOP=1 -c "SELECT count(*) AS merchant_count FROM merchant;"
+docker compose -f "${COMPOSE_FILE}" exec -T postgres psql -U "${USER}" -d "${DB}" -v ON_ERROR_STOP=1 -c "SELECT count(*) AS terminal_count FROM terminal;"
+docker compose -f "${COMPOSE_FILE}" exec -T postgres psql -U "${USER}" -d "${DB}" -v ON_ERROR_STOP=1 -c "SELECT count(*) AS txn_count FROM txn;"

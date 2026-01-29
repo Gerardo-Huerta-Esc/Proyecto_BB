@@ -17,6 +17,12 @@ docker compose -f compose/docker-compose.yml up -d && ./scripts/bootstrap.sh
 
 Esto levanta todos los servicios y luego ejecuta el bootstrap para preparar el esquema/datos y disparar el ETL.
 
+Si se requiere reiniciar desde cero (borra datos/volúmenes):
+
+```bash
+docker compose -f compose/docker-compose.yml down -v
+```
+
 ---
 
 ### Acceso rápido (UI y monitoreo)

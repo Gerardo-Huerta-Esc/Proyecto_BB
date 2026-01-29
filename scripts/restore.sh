@@ -3,8 +3,8 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BACKUP_DIR="${ROOT_DIR}/backups"
+COMPOSE_FILE="${ROOT_DIR}/compose/docker-compose.yml"
 
-CONTAINER="${POSTGRES_CONTAINER_NAME:-payments-postgres}"
 DB="${POSTGRES_DB:-payments}"
 USER="${POSTGRES_USER:-admin}"
 
@@ -24,10 +24,10 @@ fi
 echo "[RESTORE] Restoring from: ${backup_file}"
 
 # Drop & recreate DB (Postgres 15 supports FORCE).
-docker exec "${CONTAINER}" psql -U "${USER}" -d postgres -v ON_ERROR_STOP=1 -c "DROP DATABASE IF EXISTS ${DB} WITH (FORCE);"
-docker exec "${CONTAINER}" psql -U "${USER}" -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE ${DB};"
+docker compose -f "${COMPOSE_FILE}" exec -T postgres psql -U "${USER}" -d postgres -v ON_ERROR_STOP=1 -c "DROP DATABASE IF EXISTS ${DB} WITH (FORCE);"
+docker compose -f "${COMPOSE_FILE}" exec -T postgres psql -U "${USER}" -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE ${DB};"
 
 # Restore data
-gzip -dc "${backup_file}" | docker exec -i "${CONTAINER}" psql -U "${USER}" -d "${DB}" -v ON_ERROR_STOP=1
+gzip -dc "${backup_file}" | docker compose -f "${COMPOSE_FILE}" exec -T postgres psql -U "${USER}" -d "${DB}" -v ON_ERROR_STOP=1
 
 echo "[RESTORE] Done."
