@@ -20,12 +20,12 @@ until docker compose -f "${COMPOSE_FILE}" exec -T postgres pg_isready > /dev/nul
   sleep 2
 done
 
-# Read actual init values from container env (portable across machines/envs).
+# Recupera los valores reales de POSTGRES_USER/POSTGRES_DB que el contenedor usa, para mantener compatibilidad con distintas configuraciones.
 POSTGRES_USER="$(docker compose -f "${COMPOSE_FILE}" exec -T postgres sh -lc 'printf "%s" "${POSTGRES_USER:-admin}"')"
 POSTGRES_DB="$(docker compose -f "${COMPOSE_FILE}" exec -T postgres sh -lc 'printf "%s" "${POSTGRES_DB:-payments}"')"
 
-# Run seed.sql only on a fresh DB (avoid duplication on repeated bootstrap runs).
-# IMPORTANTE: evitar referenciar 'account' si aún no existe (caso de una base nueva).
+# Ejecuta seed solo en un entorno nuevo (para evitar insertar datos duplicados si se ejecuta varias veces el bootstrap).
+# IMPORTANTE: no referenciar 'account' si aún no existe, porque la primera ejecución crea la tabla.
 has_account="$(docker compose -f "${COMPOSE_FILE}" exec -T postgres psql -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" -tAc "SELECT to_regclass('public.account') IS NOT NULL;" | tr -d '[:space:]')"
 
 seed_count=0
