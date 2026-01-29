@@ -98,7 +98,6 @@ services:
       PGUSER: ${POSTGRES_USER:-admin}
       PGPASSWORD: ${POSTGRES_PASSWORD:-admin}
       BACKUP_DIR: /backups
-      # "Automático" pero simple: 1 backup por hora (ajustable).
       BACKUP_INTERVAL_SECONDS: ${BACKUP_INTERVAL_SECONDS:-3600}
     volumes:
       - ../backups:/backups

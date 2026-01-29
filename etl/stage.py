@@ -45,7 +45,7 @@ def generate_txn():
     )
     cur = conn.cursor()
 
-    # Cuántas transacciones ya existen (para hacer el proceso idempotente).
+    # Cuántas transacciones ya existen (idempotente).
     cur.execute("SELECT count(*) FROM txn;")
     existing = int(cur.fetchone()[0])
     remaining = max(0, target_total - existing)
@@ -55,7 +55,7 @@ def generate_txn():
         conn.close()
         return
 
-    # Traer IDs existentes (dimensiones)
+    # Traer IDs existentes 
     cur.execute("SELECT id FROM account;")
     accounts = [row[0] for row in cur.fetchall()]
 

@@ -19,7 +19,7 @@ while true; do
   out="${BACKUP_DIR}/payments_${ts}.sql.gz"
   echo "[BACKUP-JOB] creating ${out}"
 
-  # pg_dump ya está instalado en la imagen oficial de Postgres que usamos, por eso se ejecuta directamente aquí.
+  # pg_dump ya está instalado en la imagen oficial de Postgres, por eso se ejecuta directamente aquí.
   PGPASSWORD="${PGPASSWORD}" pg_dump \
     -h "${PGHOST}" -p "${PGPORT}" -U "${PGUSER}" -d "${PGDATABASE}" \
     --no-owner --no-privileges | gzip -c > "${out}"

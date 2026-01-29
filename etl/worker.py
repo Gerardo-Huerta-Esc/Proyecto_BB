@@ -3,7 +3,7 @@ import subprocess
 import os
 import time
 
-# ===== Configuración RabbitMQ (VIENE DEL docker-compose) =====
+#  Configuracionn RabbitMQ (desde docker-compose) 
 RABBIT_HOST = os.getenv("RABBITMQ_HOST", "rabbitmq")
 RABBIT_USER = os.getenv("RABBITMQ_USER", "admin")
 RABBIT_PASSWORD = os.getenv("RABBITMQ_PASSWORD", "admin")
@@ -19,7 +19,6 @@ def run_script(script_name):
 def main():
     while True:
         try:
-            # ===== AUTENTICACIÓN (ESTO ES LO QUE FALTABA) =====
             credentials = pika.PlainCredentials(
                 RABBIT_USER,
                 RABBIT_PASSWORD

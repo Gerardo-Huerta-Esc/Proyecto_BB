@@ -15,18 +15,18 @@ if [[ -z "${backup_file}" ]]; then
 fi
 
 if [[ -z "${backup_file}" || ! -f "${backup_file}" ]]; then
-  echo "[RESTORE] Backup file not found. Usage: ./scripts/restore.sh /abs/path/to/backup.sql.gz"
-  echo "[RESTORE] Or ensure backups/LATEST exists."
+  echo "[RESTORE] Archivo de respaldo no encontrado. Uso: ./scripts/restore.sh /ruta/absoluta/backup.sql.gz"
+  echo "[RESTORE] Si ejecutas `./scripts/backup.sh` se generará un dump nuevo y se actualizará backups/LATEST."
   exit 1
 fi
 
 echo "[RESTORE] Restoring from: ${backup_file}"
 
-# Drop & recreate DB (Postgres 15 supports FORCE).
+# Elimina y recrea la base de datos usando la opción FORCE disponible en Postgres 15.
 docker compose -f "${COMPOSE_FILE}" exec -T postgres psql -U "${USER}" -d postgres -v ON_ERROR_STOP=1 -c "DROP DATABASE IF EXISTS ${DB} WITH (FORCE);"
 docker compose -f "${COMPOSE_FILE}" exec -T postgres psql -U "${USER}" -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE ${DB};"
 
-# Restore data
+echo "[RESTORE] Inicia la restauración del dump."
 gzip -dc "${backup_file}" | docker compose -f "${COMPOSE_FILE}" exec -T postgres psql -U "${USER}" -d "${DB}" -v ON_ERROR_STOP=1
 
 echo "[RESTORE] Done."

@@ -1,4 +1,4 @@
-# Consultas y análisis (mínimo)
+# Consultas y análisis 
 
 Este documento incluye **consultas de integridad** y **planes de ejecución** (PostgreSQL `EXPLAIN (ANALYZE, BUFFERS)`) para cumplir el punto 4.
 
@@ -61,7 +61,7 @@ Salida capturada:
  Execution Time: 239.238 ms
 ```
 
-Interpretación mínima:
+Interpretación:
 - Se observa `Parallel Append` sobre particiones (`txn_2025_MM`), lo que confirma el uso de particionamiento por rango mensual.
 
 ## 3) Plan de ejecución: filtro por cuenta + rango (pruning)

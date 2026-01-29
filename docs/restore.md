@@ -1,6 +1,6 @@
 # Backups & Restore (simple)
 
-Este proyecto incluye un mecanismo **simple** (pero verificable) para:
+Este proyecto incluye un mecanismo simple (pero verificable) para:
 
 - **Backups automáticos** (mientras el stack está levantado) vía un servicio `backup` en Docker Compose.
 - **Backups manuales** bajo demanda.
