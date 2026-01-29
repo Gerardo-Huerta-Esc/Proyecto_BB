@@ -1,0 +1,3 @@
+# Config mínimo válido para postgres-exporter.
+# (En esta demo seguimos usando DATA_SOURCE_NAME para el DSN.)
+auth_modules: {}

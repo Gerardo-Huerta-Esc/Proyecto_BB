@@ -1,0 +1,20 @@
+groups:
+  - name: postgres-alerts
+    rules:
+      - alert: PostgresDown
+        expr: pg_up == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Postgres is down"
+          description: "pg_up == 0 for 30s on {{ $labels.instance }}"
+
+      - alert: PostgresExporterDown
+        expr: up{job="postgres-exporter"} == 0
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "Postgres exporter is down"
+          description: "Prometheus cannot scrape postgres-exporter for 30s."

@@ -1,0 +1,15 @@
+# Local env
+.env
+
+# Backups (generated)
+backups/*.sql.gz
+backups/LATEST
+
+# Python caches
+__pycache__/
+*.pyc
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/

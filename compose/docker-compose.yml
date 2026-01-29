@@ -1,0 +1,138 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:15
+    container_name: payments-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
+      POSTGRES_DB: ${POSTGRES_DB:-payments}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    command: >
+      postgres
+      -c shared_buffers=256MB
+      -c work_mem=16MB
+      -c wal_compression=on
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: payments-postgres-exporter
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command:
+      - "--config.file=/etc/postgres_exporter/postgres_exporter.yml"
+    environment:
+      # Conecta por DNS interno del compose network.
+      DATA_SOURCE_NAME: postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-admin}@postgres:5432/${POSTGRES_DB:-payments}?sslmode=disable
+    ports:
+      - "${POSTGRES_EXPORTER_PORT:-9187}:9187"
+    volumes:
+      - ../prometheus/postgres_exporter.yml:/etc/postgres_exporter/postgres_exporter.yml:ro
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: payments-rabbitmq
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"       # cola
+      - "${RABBITMQ_MGMT_PORT:-15672}:15672"     # UI web
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-admin}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-admin}
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: payments-prometheus
+    depends_on:
+      postgres-exporter:
+        condition: service_started
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ../prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prom_data:/prometheus
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: payments-grafana
+    depends_on:
+      prometheus:
+        condition: service_started
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ../grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../grafana/dashboards:/var/lib/grafana/dashboards:ro
+
+  backup:
+    image: postgres:15
+    container_name: payments-backup
+    user: "1000:1000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGPORT: 5432
+      PGDATABASE: ${POSTGRES_DB:-payments}
+      PGUSER: ${POSTGRES_USER:-admin}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-admin}
+      BACKUP_DIR: /backups
+      # "Automático" pero simple: 1 backup por hora (ajustable).
+      BACKUP_INTERVAL_SECONDS: ${BACKUP_INTERVAL_SECONDS:-3600}
+    volumes:
+      - ../backups:/backups
+      - ../jobs/backup_loop.sh:/backup_loop.sh:ro
+    command: ["/bin/sh", "/backup_loop.sh"]
+
+  worker:
+    build:
+      context: ../etl
+      dockerfile: Dockerfile
+    container_name: payments-worker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-payments}
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
+      STAGE_TARGET_TXN: ${STAGE_TARGET_TXN:-1000000}
+      STAGE_CHUNK_SIZE: ${STAGE_CHUNK_SIZE:-5000}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: ${RABBITMQ_USER:-admin}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-admin}
+    volumes:
+      - ../etl:/app
+    command: ["python3", "worker.py"]
+
+volumes:
+  pgdata:
+  rabbitmq_data:
+  prom_data:
+  grafana_data:

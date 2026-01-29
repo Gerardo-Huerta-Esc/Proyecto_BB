@@ -1,0 +1,21 @@
+[VERIFY] 2026-01-29T09:11:53Z
+ account_count 
+---------------
+        200000
+(1 row)
+
+ merchant_count 
+----------------
+          10000
+(1 row)
+
+ terminal_count 
+----------------
+          40000
+(1 row)
+
+ txn_count 
+-----------
+   1000000
+(1 row)
+
