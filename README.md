@@ -1,20 +1,13 @@
-### Payments Platform (PostgreSQL + RabbitMQ + ETL + Observabilidad)
 
-Proyecto dockerizado para evaluar habilidades de administración PostgreSQL, ETL encadenado vía RabbitMQ, observabilidad con Prometheus/Grafana, alertas, backups/restore y documentación mínima de análisis/tuning.
-
----
 
 ### Requisitos
 
 - Docker
 - Docker Compose (plugin `docker compose`)
 - Bash (para ejecutar `./scripts/bootstrap.sh`)
-
-No necesitas instalar Python ni PostgreSQL en tu máquina: todo corre en contenedores.
-
 ---
 
-### Ejecución (comando requerido)
+### Ejecución
 
 Desde la **raíz del repo**:
 
@@ -23,6 +16,25 @@ docker compose -f compose/docker-compose.yml up -d && ./scripts/bootstrap.sh
 ```
 
 Esto levanta todos los servicios y luego ejecuta el bootstrap para preparar el esquema/datos y disparar el ETL.
+
+---
+
+### Acceso rápido (UI y monitoreo)
+
+- **Grafana**: `http://localhost:${GRAFANA_PORT:-3000}`
+  - Credenciales por default: `admin / admin`
+  - Dashboard precargado: carpeta `Payments` → `Payments - Postgres Overview`
+- **Prometheus**: `http://localhost:${PROMETHEUS_PORT:-9090}`
+  - Targets: `http://localhost:${PROMETHEUS_PORT:-9090}/targets`
+  - Alertas: `http://localhost:${PROMETHEUS_PORT:-9090}/alerts`
+- **RabbitMQ (management UI)**: `http://localhost:${RABBITMQ_MGMT_PORT:-15672}`
+  - Credenciales por default: `admin / admin`
+
+Durante la primera ejecución, el worker genera hasta `STAGE_TARGET_TXN` transacciones. Para ver progreso:
+
+```bash
+docker logs -f payments-worker
+```
 
 ---
 
@@ -67,20 +79,6 @@ Si vuelves a correr `./scripts/bootstrap.sh`, el script detecta si ya hay datos 
 - Flujo: `stage → clean → agg`
 - `worker.py` consume mensajes y ejecuta el script correspondiente.
 - `stage.py` genera transacciones sintéticas hasta `STAGE_TARGET_TXN` (default: **1,000,000**) en chunks (`STAGE_CHUNK_SIZE`).
-
----
-
-### Datos y portabilidad (¿se sube el millón al repo?)
-
-- **No** se sube el millón de transacciones al repo.
-- Los datos viven en un **volumen Docker** (`pgdata`). Cuando alguien clona el repo y ejecuta el comando, el bootstrap genera los datos en su propia máquina.
-- **Backups**: se guardan en la carpeta del host `./backups` (montada en el contenedor `backup`). Esos archivos **no deberían commitearse**.
-
-Para reiniciar el entorno desde cero (incluye borrar datos):
-
-```bash
-docker compose -f compose/docker-compose.yml down -v
-```
 
 ---
 
