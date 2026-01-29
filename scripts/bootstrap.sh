@@ -1,10 +1,10 @@
-#!/bin/bash
+
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 COMPOSE_FILE="${ROOT_DIR}/compose/docker-compose.yml"
 
-# Load .env if present (optional)
+# Carga las variables definidas en .env (si existe) y las exporta para este script.
 if [[ -f "${ROOT_DIR}/.env" ]]; then
   set -a
   # shellcheck disable=SC1090
@@ -25,7 +25,7 @@ POSTGRES_USER="$(docker compose -f "${COMPOSE_FILE}" exec -T postgres sh -lc 'pr
 POSTGRES_DB="$(docker compose -f "${COMPOSE_FILE}" exec -T postgres sh -lc 'printf "%s" "${POSTGRES_DB:-payments}"')"
 
 # Run seed.sql only on a fresh DB (avoid duplication on repeated bootstrap runs).
-# IMPORTANT: don't reference 'account' unless it exists (fresh DB would error).
+# IMPORTANTE: evitar referenciar 'account' si aún no existe (caso de una base nueva).
 has_account="$(docker compose -f "${COMPOSE_FILE}" exec -T postgres psql -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" -tAc "SELECT to_regclass('public.account') IS NOT NULL;" | tr -d '[:space:]')"
 
 seed_count=0

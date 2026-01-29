@@ -1,8 +1,6 @@
-#!/bin/sh
 set -eu
 
-# Simple "automatic backups" job:
-# runs pg_dump periodically while the stack is up.
+# Script de backups automáticos: ejecuta un pg_dump periódico mientras el stack está activo para conservar dumps recientes.
 
 BACKUP_DIR="${BACKUP_DIR:-/backups}"
 PGHOST="${PGHOST:-postgres}"
@@ -21,7 +19,7 @@ while true; do
   out="${BACKUP_DIR}/payments_${ts}.sql.gz"
   echo "[BACKUP-JOB] creating ${out}"
 
-  # pg_dump is available in postgres image.
+  # pg_dump ya está instalado en la imagen oficial de Postgres que usamos, por eso se ejecuta directamente aquí.
   PGPASSWORD="${PGPASSWORD}" pg_dump \
     -h "${PGHOST}" -p "${PGPORT}" -U "${PGUSER}" -d "${PGDATABASE}" \
     --no-owner --no-privileges | gzip -c > "${out}"

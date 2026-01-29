@@ -1,4 +1,4 @@
-#!/bin/bash
+
 set -euo pipefail
 
 DB="${POSTGRES_DB:-payments}"

@@ -1,4 +1,3 @@
-# /etl/clean.py
 import psycopg2
 import os
 

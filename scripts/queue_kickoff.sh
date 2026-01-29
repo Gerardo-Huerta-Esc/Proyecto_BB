@@ -1,10 +1,10 @@
-#!/bin/bash
+
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 COMPOSE_FILE="${ROOT_DIR}/compose/docker-compose.yml"
 
-# Load .env if present (optional)
+# Carga las variables definidas en .env (si está disponible) para personalizar credenciales.
 if [[ -f "${ROOT_DIR}/.env" ]]; then
   set -a
   # shellcheck disable=SC1090

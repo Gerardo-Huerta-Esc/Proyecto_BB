@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+
 """
 bootstrap.py - Script opcional (Python) para bootstrap
 

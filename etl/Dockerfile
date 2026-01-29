@@ -1,4 +1,3 @@
-# /etl/Dockerfile
 FROM python:3.12-slim
 
 # Evitar buffering en logs
